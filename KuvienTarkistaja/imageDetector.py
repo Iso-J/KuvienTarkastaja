@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 import os
 from tkinter import *
 
-count = 0
-
 def detect_objects(image_path):
     """
     Detect objects in an image using YOLOv8.
@@ -18,7 +16,7 @@ def detect_objects(image_path):
         Detected objects and class labels.
     """
     # Load YOLO model
-    model = YOLO()  # Load the model
+    model = YOLO('yolo8n.pt')  # Load the model
     
     # Read image
     image = cv2.imread(image_path)
@@ -42,7 +40,7 @@ def detect_objects(image_path):
 
     return boxes, results.names, annotated_image, colors
 
-def show_results(image_path, confidence_threshold):
+def show_results(image_path, img_name, confidence_threshold):
     """
     Show original image and detection results side by side.
 
@@ -98,13 +96,13 @@ def show_results(image_path, confidence_threshold):
     
     # Show original image
     plt.subplot(1, 2, 1)
-    plt.title('Original Image')
+    plt.title('Alkuperäinen Kuva')
     plt.imshow(original_image)
     plt.axis('off')
     
     # Show detection results
     plt.subplot(1, 2, 2)
-    plt.title('Detected Objects')
+    plt.title('Huomatut objektit')
     plt.imshow(annotated_image)
     plt.axis('off')
 
@@ -118,11 +116,16 @@ def show_results(image_path, confidence_threshold):
     plt.legend(handles=legend_handles, loc='upper right', title='Classes')
 
     plt.tight_layout()
-    plt.savefig('D:/Detections/' + str(count) + "_detection.png")
+    plt.savefig(final_output_directory + "/" + str(img_name) + "_detection.png")
     plt.close()
 
 # Example usage:
+final_input_directory = ""
 final_output_directory = ""
+
+def set_input_directory(input_directory):
+    global final_input_directory 
+    final_input_directory = input_directory
 
 def set_output_directory(output_directory):
     global final_output_directory 
@@ -140,26 +143,38 @@ def delete_files_in_output_directory(output_directory):
      print("Error occurred while deleting files.")
      quit()
 
-set_output_directory("D:/Detections/")
 
-delete_files_in_output_directory(final_output_directory)
-directory = 'C:/Users/jonin/OneDrive/Kuvat/testfordetections'
+def detect_files_in_input_directory():
+    count = 0
+    delete_files_in_output_directory(final_output_directory)
+    directory = final_input_directory
+    amountOfFiles = 0
 
-amountOfFiles = 0
+    for file in os.scandir(directory):
+        extension = file.name[len(file.name) - 3] + file.name[len(file.name) - 2] + file.name[len(file.name) - 1]
+        if extension.lower() != 'jpg':
+            continue
+        else:
+            amountOfFiles += 1
 
-for file in os.scandir(directory):
-    extension = file.name[len(file.name) - 3] + file.name[len(file.name) - 2] + file.name[len(file.name) - 1]
-    if extension.lower() != 'jpg':
-        continue
-    else:
-        amountOfFiles += 1
+    for entry in os.scandir(directory):
+        #print(entry.name)
+        extension = entry.name[len(entry.name) - 3] + entry.name[len(entry.name) - 2] + entry.name[len(entry.name) - 1]
+        extension = extension.lower()
+        print(extension)
+        
+        if extension != 'jpg' and extension != 'png':
+            continue
+        else:
+            show_results(entry.path, entry.name[:-4], confidence_threshold=0.2)
+            count += 1
+        
 
-for entry in os.scandir(directory):
-    #print(entry.name)
-    extension = entry.name[len(entry.name) - 3] + entry.name[len(entry.name) - 2] + entry.name[len(entry.name) - 1]
-    if extension.lower() != 'jpg':
-        continue
-    else:
-        show_results(entry.path, confidence_threshold=0.2)
-        count += 1
-    print(str(round(float(count / amountOfFiles * 100), 2)) + '%')
+class imageDetector:
+    def __init__(self, folder_input_path, folder_output_path):
+        self.folder_input_path = folder_input_path
+        self.folder_output_path = folder_output_path
+        set_input_directory(folder_input_path)
+        set_output_directory(folder_output_path)
+        detect_files_in_input_directory()
+        
