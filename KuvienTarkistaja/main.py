@@ -8,6 +8,7 @@ from tkinter import *
 # import filedialog module
 from tkinter import filedialog
 from tkinter import messagebox
+from imageDetector import *
 
 import os
 
@@ -17,7 +18,13 @@ import os
 folderInputPath = ""
 folderOutputPath = ""
 
-
+def checkOutput():
+	path = folderOutputPath
+	if path == "":
+		messagebox.showerror('Virhe', 'Et ole valinnut kansiota')
+		return False
+	return True
+	
 def browseFilesInput():
 	filename = filedialog.askdirectory(initialdir = "/",
 										title = "Valitse kansio joiden sisältö tarkistetaan",
@@ -40,10 +47,15 @@ def browseFilesOutput():
 
 def openOutputFolder():
 	path = folderOutputPath
-	if path == "":
-		messagebox.showerror('Virhe', 'Et ole valinnut kansiota')
-		return
-	os.startfile(path)
+	if checkOutput():
+		os.startfile(path)
+
+def startDetector():
+	if checkOutput():
+		if messagebox.askokcancel('Varoitus', 'Tämä poistaa kaikki tiedostot kansiosta' + folderOutputPath):
+			window.title('Tarkistetaan kuvat. älä sulje ikkunaa...')
+			imageDetector(folderInputPath, folderOutputPath)
+			window.title('Kuvien tarkistaja')
 	
 																								
 # Create the root window
@@ -94,9 +106,9 @@ label_check_for_detections = Label(window,
 
 button_check_for_detections = Button(window, 
 						text = "Tarkista kuvat",
-						height=buttonsHeight
-                        )
-						#command = browseFiles) 
+						height=buttonsHeight,
+                        
+						command = startDetector) 
 label_check_output_folder = Label(window, 
 							text = "Tarkistetut kuvat",
 							width = 100, height = 2,
