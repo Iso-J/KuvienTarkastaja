@@ -16,7 +16,7 @@ def detect_objects(image_path):
         Detected objects and class labels.
     """
     # Load YOLO model
-    model = YOLO('yolo8n.pt')  # Load the model
+    model = YOLO('yolov8n.pt')  # Load the model
     
     # Read image
     image = cv2.imread(image_path)
@@ -83,9 +83,9 @@ def show_results(image_path, img_name, confidence_threshold):
             
             # Store class name and color for legend
             class_labels[class_name] = color
-            print(class_name)
-            if class_name != 'bench':
-                hasOnlyBench = 0
+           # print(class_name)
+           # if class_name != 'bench':
+           #     hasOnlyBench = 0
 
     if hasOnlyBench == 1: 
         return
@@ -146,7 +146,7 @@ def delete_files_in_output_directory(output_directory):
 
 def detect_files_in_input_directory():
     count = 0
-    delete_files_in_output_directory(final_output_directory)
+    #delete_files_in_output_directory(final_output_directory)
     directory = final_input_directory
     amountOfFiles = 0
 

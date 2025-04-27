@@ -52,20 +52,35 @@ def openOutputFolder():
 
 def startDetector():
 	if checkOutput():
-		if messagebox.askokcancel('Varoitus', 'Tämä poistaa kaikki tiedostot kansiosta' + folderOutputPath):
+		if messagebox.askokcancel('Varoitus', 'Tämä lisää kuvia kansioon ' + folderOutputPath):
 			window.title('Tarkistetaan kuvat. älä sulje ikkunaa...')
 			imageDetector(folderInputPath, folderOutputPath)
 			window.title('Kuvien tarkistaja')
-	
+   
+def quitProgram():
+    window.quit()
+
+
+def CenterWindowToDisplay(Screen: Tk, width: int, height: int):
+    """Centers the window to the main display/monitor"""
+    screen_width = Screen.winfo_screenwidth()
+    screen_height = Screen.winfo_screenheight()
+    x = int((screen_width/2) - (width/2))
+    y = int((screen_height/2) - (height/1.5))
+    return f"{width}x{height}+{x}+{y}"
+
 																								
 # Create the root window
 window = Tk()
 
+window.geometry(CenterWindowToDisplay(window,700,500))
+
 # Set window title
 window.title('Kuvien tarkistaja')
 
-# Set window size
-window.geometry("700x500")
+p1 = PhotoImage(file= os.getcwd() +'/Kuvientarkastajalogo.png')
+window.iconphoto(False, p1)
+
 
 #Set window background color
 window.config(background = "white")
@@ -120,8 +135,8 @@ button_check_output_folder = Button(window,
 						command = openOutputFolder) 
 
 button_exit = Button(window, 
-					text = "Exit",
-					command = exit) 
+					text = "Sulje ohjelma",
+					command = quitProgram) 
 
 # Grid method is chosen for placing
 # the widgets at respective positions 
