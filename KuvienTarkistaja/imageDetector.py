@@ -3,9 +3,14 @@ import numpy as np
 from ultralytics import YOLO
 import matplotlib.pyplot as plt
 import os
-from tkinter import *
+import threading
+from memory_profiler import profile
+import gc
 
-def detect_objects(image_path):
+count = 0
+amountOfFiles = 0
+
+def detect_objects(image_path, model):
     """
     Detect objects in an image using YOLOv8.
     
@@ -16,7 +21,7 @@ def detect_objects(image_path):
         Detected objects and class labels.
     """
     # Load YOLO model
-    model = YOLO('yolov8n.pt')  # Load the model
+    #model = YOLO()  # Load the model
     
     # Read image
     image = cv2.imread(image_path)
@@ -37,10 +42,12 @@ def detect_objects(image_path):
     
     # Process detections
     boxes = results.boxes
+    names = results.names
+    return boxes, names, annotated_image, colors
 
-    return boxes, results.names, annotated_image, colors
+#TO DO VARMISTA ETTEI VUODA MUISTIA
 
-def show_results(image_path, img_name, confidence_threshold):
+def show_results(image_path,model, img_name, confidence_threshold):
     """
     Show original image and detection results side by side.
 
@@ -53,7 +60,7 @@ def show_results(image_path, img_name, confidence_threshold):
     original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB)
     
     # Get detection results
-    boxes, class_names, annotated_image, colors = detect_objects(image_path)
+    boxes, class_names, annotated_image, colors = detect_objects(image_path, model)
     
     
     if len(boxes) <= 0:
@@ -83,16 +90,15 @@ def show_results(image_path, img_name, confidence_threshold):
             
             # Store class name and color for legend
             class_labels[class_name] = color
-           # print(class_name)
-           # if class_name != 'bench':
-           #     hasOnlyBench = 0
+            print(class_name)
+            if class_name != 'bench':
+                hasOnlyBench = 0
 
     if hasOnlyBench == 1: 
         return
             
     
     # Create figure
-    plt.figure(figsize=(15, 7))
     
     # Show original image
     plt.subplot(1, 2, 1)
@@ -117,7 +123,9 @@ def show_results(image_path, img_name, confidence_threshold):
 
     plt.tight_layout()
     plt.savefig(final_output_directory + "/" + str(img_name) + "_detection.png")
-    plt.close()
+    print(final_output_directory + "/" + str(img_name) + "_detection.png")
+    plt.clf()
+    del(boxes, class_names, annotated_image, colors)
 
 # Example usage:
 final_input_directory = ""
@@ -142,17 +150,16 @@ def delete_files_in_output_directory(output_directory):
     except OSError:
      print("Error occurred while deleting files.")
      quit()
-
-
-def detect_files_in_input_directory():
+     
+def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
     count = 0
-    #delete_files_in_output_directory(final_output_directory)
+    delete_files_in_output_directory(final_output_directory)
     directory = final_input_directory
     amountOfFiles = 0
 
     for file in os.scandir(directory):
         extension = file.name[len(file.name) - 3] + file.name[len(file.name) - 2] + file.name[len(file.name) - 1]
-        if extension.lower() != 'jpg':
+        if extension.lower() != 'jpg' and extension.lower() != 'png':
             continue
         else:
             amountOfFiles += 1
@@ -166,15 +173,27 @@ def detect_files_in_input_directory():
         if extension != 'jpg' and extension != 'png':
             continue
         else:
-            show_results(entry.path, entry.name[:-4], confidence_threshold=0.2)
+            show_results(entry.path, model, entry.name[:-4], confidence_threshold=0.2)
             count += 1
-        
+
+@profile
+def startDetecting(folder_input_path, folder_output_path):
+    gc.enable()
+    model = YOLO()
+    set_input_directory(folder_input_path)
+    set_output_directory(folder_output_path)
+    plt.figure(figsize=(15, 7))
+    detect_files_in_input_directory(model)
+    percentageLeft()
+    gc.disable()
+
+def percentageLeft():
+        while count < amountOfFiles:
+            print(float(count / amountOfFiles))
 
 class imageDetector:
     def __init__(self, folder_input_path, folder_output_path):
         self.folder_input_path = folder_input_path
         self.folder_output_path = folder_output_path
-        set_input_directory(folder_input_path)
-        set_output_directory(folder_output_path)
-        detect_files_in_input_directory()
-        
+        detect_thread = threading.Thread(target=startDetecting, name="detecter", args=[folder_input_path,folder_output_path])
+        detect_thread.start()
