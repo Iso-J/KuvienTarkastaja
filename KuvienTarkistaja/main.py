@@ -58,7 +58,7 @@ def startDetector():
 			window.title('Kuvien tarkistaja')
    
 def quitProgram():
-    window.quit()
+    quit()
 
 
 def CenterWindowToDisplay(Screen: Tk, width: int, height: int):
