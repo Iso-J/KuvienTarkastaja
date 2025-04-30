@@ -11,6 +11,7 @@ from tkinter import messagebox
 from imageDetector import *
 
 import os
+import sys
 
 # Function for opening the 
 # file explorer window
@@ -54,11 +55,11 @@ def startDetector():
 	if checkOutput():
 		if messagebox.askokcancel('Varoitus', 'Tämä lisää kuvia kansioon ' + folderOutputPath):
 			window.title('Tarkistetaan kuvat. älä sulje ikkunaa...')
-			imageDetector(folderInputPath, folderOutputPath)
-			window.title('Kuvien tarkistaja')
+			detector = imageDetector(folderInputPath, folderOutputPath, window)
+			
    
 def quitProgram():
-    quit()
+    sys.exit()
 
 
 def CenterWindowToDisplay(Screen: Tk, width: int, height: int):
@@ -80,6 +81,8 @@ window.title('Kuvien tarkistaja')
 
 p1 = PhotoImage(file= os.getcwd() +'/Kuvientarkastajalogo.png')
 window.iconphoto(False, p1)
+
+window.protocol("WM_DELETE_WINDOW", quitProgram)
 
 
 #Set window background color
@@ -134,7 +137,7 @@ button_check_output_folder = Button(window,
 						height=buttonsHeight,
 						command = openOutputFolder) 
 
-button_exit = Button(window, 
+button_exit = Button(window,
 					text = "Sulje ohjelma",
 					command = quitProgram) 
 

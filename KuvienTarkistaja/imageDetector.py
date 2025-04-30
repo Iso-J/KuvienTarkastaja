@@ -6,6 +6,7 @@ import os
 import threading
 from memory_profiler import profile
 import gc
+import tkinter
 
 count = 0
 amountOfFiles = 0
@@ -151,10 +152,12 @@ def delete_files_in_output_directory(output_directory):
      print("Error occurred while deleting files.")
      quit()
      
-def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
+def detect_files_in_input_directory(model, window): ##TO DO KORJAA MUISTIVUOTO
+    global count
     count = 0
-    delete_files_in_output_directory(final_output_directory)
+    #delete_files_in_output_directory(final_output_directory)
     directory = final_input_directory
+    global amountOfFiles
     amountOfFiles = 0
 
     for file in os.scandir(directory):
@@ -174,26 +177,33 @@ def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
             continue
         else:
             show_results(entry.path, model, entry.name[:-4], confidence_threshold=0.2)
+            window.title(str(percentageLeft()) + '%')
             count += 1
 
 @profile
-def startDetecting(folder_input_path, folder_output_path):
+def startDetecting(folder_input_path, folder_output_path, window):
     gc.enable()
     model = YOLO()
     set_input_directory(folder_input_path)
     set_output_directory(folder_output_path)
     plt.figure(figsize=(15, 7))
-    detect_files_in_input_directory(model)
-    percentageLeft()
+    detect_files_in_input_directory(model, window)
     gc.disable()
+    window.title('Kuvien tarkistaja')
 
 def percentageLeft():
-        while count < amountOfFiles:
-            print(float(count / amountOfFiles))
+    return round(float(count / (amountOfFiles + 1) * 100), 2)
 
 class imageDetector:
-    def __init__(self, folder_input_path, folder_output_path):
+    def __init__(self, folder_input_path, folder_output_path, window):
         self.folder_input_path = folder_input_path
         self.folder_output_path = folder_output_path
-        detect_thread = threading.Thread(target=startDetecting, name="detecter", args=[folder_input_path,folder_output_path])
-        detect_thread.start()
+        self.window = window
+        self.detect_thread = threading.Thread(target=startDetecting, name="detecter", args=[folder_input_path,folder_output_path, window])
+        self.detect_thread.start()
+    
+    def isRunningThread(self):
+        if self.detect_thread.is_alive():
+            return True
+        else:
+            return False
