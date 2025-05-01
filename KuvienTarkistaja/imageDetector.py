@@ -152,7 +152,7 @@ def delete_files_in_output_directory(output_directory):
      print("Error occurred while deleting files.")
      quit()
      
-def detect_files_in_input_directory(model, window): ##TO DO KORJAA MUISTIVUOTO
+def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
     global count
     count = 0
     #delete_files_in_output_directory(final_output_directory)
@@ -178,29 +178,35 @@ def detect_files_in_input_directory(model, window): ##TO DO KORJAA MUISTIVUOTO
         else:
             show_results(entry.path, model, entry.name[:-4], confidence_threshold=0.2)
             window.title(str(percentageLeft()) + '%')
+            updateProgressBar(percentageLeft())
             count += 1
 
 @profile
-def startDetecting(folder_input_path, folder_output_path, window):
+def startDetecting(folder_input_path, folder_output_path):
     gc.enable()
     model = YOLO()
     set_input_directory(folder_input_path)
     set_output_directory(folder_output_path)
     plt.figure(figsize=(15, 7))
-    detect_files_in_input_directory(model, window)
+    detect_files_in_input_directory(model)
     gc.disable()
+    updateProgressBar(100)
     window.title('Kuvien tarkistaja')
 
 def percentageLeft():
     return round(float(count / (amountOfFiles + 1) * 100), 2)
 
 class imageDetector:
-    def __init__(self, folder_input_path, folder_output_path, window):
+    def __init__(self, folder_input_path, folder_output_path, windowRoot, updateProgress):
         self.folder_input_path = folder_input_path
         self.folder_output_path = folder_output_path
-        self.window = window
-        self.detect_thread = threading.Thread(target=startDetecting, name="detecter", args=[folder_input_path,folder_output_path, window])
+        self.detect_thread = threading.Thread(target=startDetecting, name="detecter", args=[folder_input_path,folder_output_path])
         self.detect_thread.start()
+        global window
+        window = windowRoot
+        global updateProgressBar
+        updateProgressBar = updateProgress
+        
     
     def isRunningThread(self):
         if self.detect_thread.is_alive():

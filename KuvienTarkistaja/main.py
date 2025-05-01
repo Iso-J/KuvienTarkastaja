@@ -8,6 +8,7 @@ from tkinter import *
 # import filedialog module
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import ttk
 from imageDetector import *
 
 import os
@@ -55,12 +56,15 @@ def startDetector():
 	if checkOutput():
 		if messagebox.askokcancel('Varoitus', 'Tämä lisää kuvia kansioon ' + folderOutputPath):
 			window.title('Tarkistetaan kuvat. älä sulje ikkunaa...')
-			detector = imageDetector(folderInputPath, folderOutputPath, window)
+			detector = imageDetector(folderInputPath, folderOutputPath, window, updateProgressBar)
 			
    
 def quitProgram():
     sys.exit()
 
+def updateProgressBar(value):
+    progress_bar_text.configure(text = str(value) + "%")
+    progress_bar['value'] = value
 
 def CenterWindowToDisplay(Screen: Tk, width: int, height: int):
     """Centers the window to the main display/monitor"""
@@ -82,7 +86,11 @@ window.title('Kuvien tarkistaja')
 p1 = PhotoImage(file= os.getcwd() +'/Kuvientarkastajalogo.png')
 window.iconphoto(False, p1)
 
-window.protocol("WM_DELETE_WINDOW", quitProgram)
+def quit_event():
+    quitProgram()
+    pass
+
+window.protocol("WM_DELETE_WINDOW", quit_event)
 
 
 #Set window background color
@@ -141,6 +149,12 @@ button_exit = Button(window,
 					text = "Sulje ohjelma",
 					command = quitProgram) 
 
+progress_bar_text = Label(window,
+                         text= "ei olla aloitettu kuvien takastamista!"
+                         )
+progress_bar = ttk.Progressbar(window, maximum=100)
+progress_bar.place(width=600)
+
 # Grid method is chosen for placing
 # the widgets at respective positions 
 # in a table like structure by
@@ -164,6 +178,10 @@ label_check_output_folder.grid(column=1,row=8)
 button_check_output_folder.grid(column=1,row=9)
 
 button_exit.grid(column = 1, row = 10)
+
+progress_bar_text.grid(column= 1, row = 11, pady= 10)
+
+progress_bar.grid(column= 1, row = 12, sticky=(N, S, E, W))
 
 # Let the window wait for any events
 window.mainloop()
