@@ -13,6 +13,7 @@ from imageDetector import *
 
 import os
 import sys
+import configparser
 
 # Function for opening the 
 # file explorer window
@@ -20,9 +21,31 @@ import sys
 folderInputPath = ""
 folderOutputPath = ""
 
-def checkOutput():
-	path = folderOutputPath
-	if path == "":
+def	create_config():
+    config = configparser.ConfigParser()
+    
+    config['Folders'] = {'FolderInput'	: folderInputPath, 
+                                  'folderOutput' : folderOutputPath}
+    
+    with open('config.ini', 'w') as configFile:
+        config.write(configFile)
+        
+def read_config():
+    config = configparser.ConfigParser()
+    try:
+        config.read('config.ini')
+        global folderInputPath
+        folderInputPath = config.get('Folders', 'FolderInput')
+        label_selected_input_folder.configure(text="Kansio jonka kuvat tarkistetaan: "+folderInputPath)
+        global folderOutputPath
+        folderOutputPath = config.get('Folders', 'FolderOutput')
+        label_selected_output_folder.configure(text="Kansio, minne pistetään tarkistetut kuvat: "+folderOutputPath)
+    except:
+        pass
+
+
+def checkFolders():
+	if folderOutputPath == "" or folderInputPath == "":
 		messagebox.showerror('Virhe', 'Et ole valinnut kansiota')
 		return False
 	return True
@@ -32,35 +55,38 @@ def browseFilesInput():
 										title = "Valitse kansio joiden sisältö tarkistetaan",
 										)
 	global folderInputPath 
-	folderInputPath = filename
-	
-	# Change label contents
-	label_selected_input_folder.configure(text="Valittu kansio: "+filename)
+	if os.path.isdir(filename):
+		folderInputPath = filename
+		label_selected_input_folder.configure(text="Valittu kansio: "+filename)
 
 def browseFilesOutput():
 	filename = filedialog.askdirectory(initialdir = "/",
 										title = "Valitse kansio, jonne tarkistetut kuvat pistetään",
 										)
 	global folderOutputPath 
-	folderOutputPath = filename
-	
-	# Change label contents
-	label_selected_output_folder.configure(text="Valittu kansio: "+filename)
+	if os.path.isdir(filename):
+		folderOutputPath = filename
+		label_selected_output_folder.configure(text="Valittu kansio: "+filename)
 
 def openOutputFolder():
 	path = folderOutputPath
-	if checkOutput():
+	if checkFolders():
 		os.startfile(path)
 
 def startDetector():
-	if checkOutput():
+	if checkFolders():
 		if messagebox.askokcancel('Varoitus', 'Tämä lisää kuvia kansioon ' + folderOutputPath):
 			window.title('Tarkistetaan kuvat. älä sulje ikkunaa...')
 			detector = imageDetector(folderInputPath, folderOutputPath, window, updateProgressBar)
 			
    
 def quitProgram():
+    create_config()
     sys.exit()
+    
+def quit_event():
+    quitProgram()
+    pass
 
 def updateProgressBar(value):
     progress_bar_text.configure(text = str(value) + "%")
@@ -85,10 +111,6 @@ window.title('Kuvien tarkistaja')
 
 p1 = PhotoImage(file= os.getcwd() +'/Kuvientarkastajalogo.png')
 window.iconphoto(False, p1)
-
-def quit_event():
-    quitProgram()
-    pass
 
 window.protocol("WM_DELETE_WINDOW", quit_event)
 
@@ -183,5 +205,6 @@ progress_bar_text.grid(column= 1, row = 11, pady= 10)
 
 progress_bar.grid(column= 1, row = 12, sticky=(N, S, E, W))
 
+read_config()
 # Let the window wait for any events
 window.mainloop()

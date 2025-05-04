@@ -185,13 +185,17 @@ def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
 def startDetecting(folder_input_path, folder_output_path):
     gc.enable()
     model = YOLO()
-    set_input_directory(folder_input_path)
-    set_output_directory(folder_output_path)
-    plt.figure(figsize=(15, 7))
-    detect_files_in_input_directory(model)
-    gc.disable()
-    updateProgressBar(100)
-    window.title('Kuvien tarkistaja')
+    try:
+        set_input_directory(folder_input_path)
+        set_output_directory(folder_output_path)
+        plt.figure(figsize=(15, 7))
+        detect_files_in_input_directory(model)
+    except:
+        pass
+    finally:
+        gc.disable()
+        window.title('Kuvien tarkistaja')
+        updateProgressBar(100)
 
 def percentageLeft():
     return round(float(count / (amountOfFiles + 1) * 100), 2)
@@ -206,10 +210,3 @@ class imageDetector:
         window = windowRoot
         global updateProgressBar
         updateProgressBar = updateProgress
-        
-    
-    def isRunningThread(self):
-        if self.detect_thread.is_alive():
-            return True
-        else:
-            return False
