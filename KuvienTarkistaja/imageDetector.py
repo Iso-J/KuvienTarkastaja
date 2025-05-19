@@ -152,7 +152,7 @@ def delete_files_in_output_directory(output_directory):
      print("Error occurred while deleting files.")
      quit()
      
-def detect_files_in_input_directory(model): ##TO DO KORJAA MUISTIVUOTO
+def detect_files_in_input_directory(model):
     global count
     count = 0
     #delete_files_in_output_directory(final_output_directory)
